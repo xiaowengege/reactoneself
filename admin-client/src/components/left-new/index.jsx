@@ -26,9 +26,126 @@ class LeftNav extends Component {
         //添加<Menu.Item><Menu.Item>
         if(!item.children){
          pre.push((
-             
+             <Menu.Item key={item.key}>
+                 <Link to={item.key}>
+                     <Icon type={item.Icon}/>
+                     <span>{item.title}</span>
+                 </Link>
+             </Menu.Item>
          ))
+        }else {//添加<SubMenu></SubMenu}
+    //如果当前请求路由与当前菜单的某个子菜单的key配备，将菜单的key保存为openkey
+    const cItem = item.children.find(cItem => path.indexof(cItem.key) ===0)
+    if (cItem){
+        this.openkey = item.key
+    }
+
+    pre.push((
+        <SubMenu
+        key={item.key}
+        title={
+            <span>
+                <Icon type={item.icon}/>
+                <span>{item.title}</span>
+            </span>
+        }
+        >
+            {this.getMenuNodes2(item.children)}
+        </SubMenu>
+    ))
+    }
+    return pre
+    },[])
+   }
+
+/*
+根据指定菜单数据列表产生<Menu>地子节点数组
+使用map（）+递归
+*/
+getMenuNodes = (menuList) => {
+
+    //根据当前请求的path
+    const path = this.props.location.pathname
+
+    return menuList.map(item =>{
+        if(!item.children){
+            return(
+                <Menu.Item key={item.key}>
+                    <Link to={item.key}>
+                        <Icon type={item.icon}/>
+                        <span>{item.title}</span>
+                    </Link>
+                </Menu.Item>
+            )
+        }else{
+            //如果当前请求路由与当前菜单的某个子菜单的key匹配，将菜单的key保存为openkey
+            if (item.children.find(cItem =>path.indexof(cItem.key) ===0)){
+                this.openkey = itme.key
+            }
+            return(
+                <SubMenu
+                key={itme.key}
+                title={
+                    <span>
+                        <Icon type={itme.icon}/>
+                        <span>{itme.title}</span>
+                    </span>
+                }
+                >
+                    {this.getMenuNodes(itme.children)}
+                </SubMenu>
+            )
         }
     })
-   }
 }
+
+/*
+第一次render（）之后执行一次
+执行异步任务：发ajax请求，启动定时器
+*/
+componentDidMount(){
+    //this.menuNodes = this.getMenuNodes2(menuList)
+}
+
+/*
+第一次render（）之前执行一次
+为第一次render（）做一些同步的准备工作
+*/
+componentWillMount(){
+    this.getMenuNodes = this.getMenuNodes2(menuList)
+}
+
+
+
+render(){
+    console.log('left-nav render()')
+
+    //得到当前请求路径，作为选中菜单项的key
+    const selectkey = this.props.location.pathname
+
+    return(
+        <div className="left-nav">
+            <Link className="left-nav-link" to="/home">
+                <img src={logo} alt="logo"/>
+                <h1>硅谷后台</h1>
+            </Link>
+
+            {/*
+            defaultSelectedkeys:总是根据第一次指定的key进行先死
+            selectedKeys：总是根据最新指定的key进行显示
+            */}
+            <Menu
+            selectedkeys={[selectkey]}
+            defaultOpenKeys={[this.openkey]}
+            mode="inline"
+            theme="dark"
+            >
+                {this.menuNodes}
+            </Menu>
+        </div>
+    )
+}
+
+}
+
+export default withRouter(LeftNav)
